@@ -18,11 +18,12 @@ const sendTokenResponse = async (user, statusCode, res) => {
     }
     await user.save();
 
+    const isDev = process.env.NODE_ENV === 'development';
     const cookieOptions = {
         expires: new Date(Date.now() + parseInt(process.env.JWT_REFRESH_COOKIE_EXPIRE || 7) * 24 * 60 * 60 * 1000),
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: !isDev,
+        sameSite: !isDev ? 'none' : 'lax',
     };
 
     const userData = {
@@ -142,11 +143,12 @@ exports.logout = async (req, res) => {
         }
     }
 
+    const isDev = process.env.NODE_ENV === 'development';
     res.cookie('refreshToken', '', {
         expires: new Date(0),
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: !isDev,
+        sameSite: !isDev ? 'none' : 'lax',
     });
     res.status(200).json({ success: true, message: 'Logged out successfully.' });
 };
