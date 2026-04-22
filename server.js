@@ -95,10 +95,17 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/inventory', inventoryRoutes);
 
 // ─── Health Check ────────────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'RushBasket API is running 🚀'
+    });
+});
+
 app.get('/api/health', (req, res) => {
     res.status(200).json({
         success: true,
-        message: 'RushBasket API is running 🚀',
+        message: 'RushBasket API Health Check 🚀',
         env: process.env.NODE_ENV,
         timestamp: new Date().toISOString(),
     });
@@ -113,16 +120,18 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ─── Start Server ────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-    console.log(`\n🚀 RushBasket API running on port ${PORT} [${process.env.NODE_ENV}]`);
-    console.log(`📡 Health check: http://localhost:${PORT}/api/health\n`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 5000;
+    const server = app.listen(PORT, () => {
+        console.log(`\n🚀 RushBasket API running on port ${PORT} [${process.env.NODE_ENV}]`);
+        console.log(`📡 Health check: http://localhost:${PORT}/api/health\n`);
+    });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-    console.error('Unhandled Rejection:', err.message);
-    server.close(() => process.exit(1));
-});
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (err) => {
+        console.error('Unhandled Rejection:', err.message);
+        server.close(() => process.exit(1));
+    });
+}
 
 module.exports = app;
