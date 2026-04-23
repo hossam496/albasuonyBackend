@@ -3,6 +3,7 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const InventoryLog = require('../models/InventoryLog');
+const Notification = require('../models/Notification');
 
 // @POST /api/orders  (protected) - place order
 exports.placeOrder = async (req, res, next) => {
@@ -80,6 +81,19 @@ exports.placeOrder = async (req, res, next) => {
 
         // Clear cart
         await Cart.findOneAndUpdate({ user: req.user.id }, { items: [] });
+
+        // Create Notification for Admins
+        const admins = await User.find({ role: 'admin' });
+        const notificationsToInsert = admins.map(admin => ({
+            user: admin._id,
+            title: 'طلب جديد',
+            message: `تم إنشاء طلب جديد برقم #${order._id.toString().slice(-6)} بقيمة ${total} ر.س`,
+            link: '/admin/orders',
+            type: 'order'
+        }));
+        if (notificationsToInsert.length > 0) {
+            await Notification.insertMany(notificationsToInsert);
+        }
 
         res.status(201).json({ success: true, order });
     } catch (error) {
